@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Production build
+dist
+
+# OS & Environment
+.env
+.env.local
+.DS_Store
+Thumbs.db
+
+# IDE / Antigravity files
+.vscode
+.idea
+.gemini

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Radiant Red-Orange Ocean Sunset Gradient -->
+    <radialGradient id="oceanSunGrad" cx="50%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#FFFF00" />
+      <stop offset="35%" stop-color="#FF5500" />
+      <stop offset="75%" stop-color="#FF1100" />
+      <stop offset="100%" stop-color="#C00000" />
+    </radialGradient>
+
+    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FF6600" />
+      <stop offset="50%" stop-color="#FF3300" />
+      <stop offset="100%" stop-color="#CC0000" />
+    </linearGradient>
+
+    <!-- Outer Radiant Glow -->
+    <filter id="oceanSunGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <g id="oceanSunset" filter="url(#oceanSunGlow)">
+    <!-- Top Sun Half Dome -->
+    <path d="M 50 250 A 200 200 0 0 1 450 250 Z" fill="url(#oceanSunGrad)" />
+
+    <!-- Rippling Horizontal Liquid Reflection Waves -->
+    <path class="ocean-wave wave-1" d="M 58 262 C 140 254, 360 270, 442 262 C 370 274, 130 252, 58 262 Z" fill="url(#waveGrad)" />
+    <path class="ocean-wave wave-2" d="M 78 284 C 160 276, 340 292, 422 284 C 350 296, 150 274, 78 284 Z" fill="url(#waveGrad)" />
+    <path class="ocean-wave wave-3" d="M 102 306 C 180 298, 320 314, 398 306 C 330 318, 170 296, 102 306 Z" fill="url(#waveGrad)" />
+    <path class="ocean-wave wave-4" d="M 128 330 C 200 322, 300 338, 372 330 C 310 342, 190 320, 128 330 Z" fill="url(#waveGrad)" />
+    <path class="ocean-wave wave-5" d="M 158 354 C 220 346, 280 360, 342 354 C 290 364, 210 346, 158 354 Z" fill="url(#waveGrad)" />
+    <path class="ocean-wave wave-6" d="M 188 378 C 235 372, 265 382, 312 378 C 270 386, 230 372, 188 378 Z" fill="url(#waveGrad)" />
+    <path class="ocean-wave wave-7" d="M 218 402 C 245 398, 255 406, 282 402 C 255 408, 245 398, 218 402 Z" fill="url(#waveGrad)" />
+  </g>
+</svg>

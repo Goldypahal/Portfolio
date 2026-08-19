@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Vibrant Sun Yellow-Gold Gradient -->
+    <radialGradient id="exactSunGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF000" />
+      <stop offset="65%" stop-color="#FFD000" />
+      <stop offset="100%" stop-color="#FFAa00" />
+    </radialGradient>
+
+    <!-- Outer Radial Glow -->
+    <filter id="exactSunGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <g id="exactSun" filter="url(#exactSunGlow)">
+    <!-- 16 Alternating Flame Rays -->
+    <!-- Ray 1 (0 deg) -->
+    <path d="M 250,140 C 242,100 262,60 250,25 C 262,60 242,100 250,140 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 2 (22.5 deg) -->
+    <path d="M 292,148 C 318,118 350,92 360,55 C 342,90 312,122 292,148 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 3 (45 deg) -->
+    <path d="M 328,172 C 362,142 402,130 415,90 C 392,125 352,148 328,172 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 4 (67.5 deg) -->
+    <path d="M 352,208 C 390,188 428,192 458,165 C 430,192 390,198 352,208 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 5 (90 deg) -->
+    <path d="M 360,250 C 400,242 440,262 475,250 C 440,262 400,242 360,250 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 6 (112.5 deg) -->
+    <path d="M 352,292 C 390,302 430,308 458,335 C 428,308 390,312 352,292 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 7 (135 deg) -->
+    <path d="M 328,328 C 362,358 392,375 415,410 C 402,370 362,358 328,328 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 8 (157.5 deg) -->
+    <path d="M 292,352 C 318,382 342,410 360,445 C 350,408 318,382 292,352 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 9 (180 deg) -->
+    <path d="M 250,360 C 258,400 238,440 250,475 C 238,440 258,400 250,360 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 10 (202.5 deg) -->
+    <path d="M 208,352 C 182,382 150,408 140,445 C 158,410 182,382 208,352 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 11 (225 deg) -->
+    <path d="M 172,328 C 138,358 98,370 85,410 C 108,375 148,352 172,328 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 12 (247.5 deg) -->
+    <path d="M 148,292 C 110,312 70,308 42,335 C 72,308 110,302 148,292 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 13 (270 deg) -->
+    <path d="M 140,250 C 100,258 60,238 25,250 C 60,238 100,258 140,250 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 14 (292.5 deg) -->
+    <path d="M 148,208 C 110,198 70,192 42,165 C 72,192 110,188 148,208 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 15 (315 deg) -->
+    <path d="M 172,172 C 138,142 108,125 85,90 C 98,130 138,142 172,172 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Ray 16 (337.5 deg) -->
+    <path d="M 208,148 C 182,118 158,90 140,55 C 150,92 182,118 208,148 Z" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Central Yellow Circle -->
+    <circle cx="250" cy="250" r="105" fill="url(#exactSunGrad)" stroke="#0b1329" stroke-width="7" />
+
+    <!-- Exact Center Black Spiral (Matching Image) -->
+    <path d="M 250,250
+             C 256,238 272,242 272,254
+             C 272,272 246,278 232,260
+             C 214,238 236,208 266,208
+             C 298,208 308,245 292,282
+             C 275,318 218,318 198,280"
+          fill="none" stroke="#0b1329" stroke-width="9" stroke-linecap="round" />
+  </g>
+</svg>
