@@ -3,6 +3,7 @@
    ========================================================================== */
 
 import gsap from 'gsap';
+import oceanSunsetUrl from '../assets/ocean_sunset.svg';
 
 export class Preloader {
   constructor(containerId, onComplete) {
@@ -23,7 +24,7 @@ export class Preloader {
 
         <!-- Center Sun Container with Liquid Ocean Reflection Waves -->
         <div class="preloader-sun-wrap">
-          <img src="/src/assets/ocean_sunset.svg" alt="Ocean Sunset Preloader" class="preloader-sun-img ocean-sunset-mode" />
+          <img src="${oceanSunsetUrl}" alt="Ocean Sunset Preloader" class="preloader-sun-img ocean-sunset-mode" />
         </div>
 
         <!-- Preloader Information & Counter -->
