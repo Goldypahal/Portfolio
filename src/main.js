@@ -20,6 +20,52 @@ class PortfolioApp {
     this.initComponents();
     this.initLenis();
     this.initErrorToastHandler();
+    this.initReveals();
+    this.initHeroRecede();
+  }
+
+  // Apple-style entrance: elements ease up into place once, as they enter the
+  // viewport. Only opacity / translate / scale are animated (GPU friendly).
+  initReveals() {
+    const targets = document.querySelectorAll(
+      '#app-about .section-tag, #app-about .section-title, #app-about .ios-glass-card,' +
+      '#app-skills .section-tag, #app-skills .section-title, #app-skills .ios-glass-card,' +
+      '#app-exploring .section-tag, #app-exploring .section-title, #app-exploring .ios-glass-card'
+    );
+    if (!('IntersectionObserver' in window)) return;
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        en.target.classList.add('rv-in');
+        io.unobserve(en.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+
+    targets.forEach((el) => {
+      el.classList.add('rv');
+      // stagger siblings inside the same grid
+      const idx = [...el.parentElement.children].indexOf(el);
+      el.style.transitionDelay = `${Math.min(idx, 5) * 70}ms`;
+      io.observe(el);
+    });
+  }
+
+  // The hero recedes as you leave it (scale / fade / drift) instead of just
+  // scrolling away, like the sticky headline on an Apple product page.
+  initHeroRecede() {
+    const title = document.querySelector('.hero-title-wrap');
+    const bar = document.querySelector('.hero-footer-bar');
+    if (!title) return;
+    const update = () => {
+      const p = Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.8)));
+      title.style.translate = `0 ${-p * 70}px`;
+      title.style.scale = `${1 - p * 0.07}`;
+      title.style.opacity = `${1 - p * 1.15}`;
+      if (bar) bar.style.opacity = `${1 - p * 1.7}`;
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    update();
   }
 
   initLenis() {
