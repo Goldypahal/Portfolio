@@ -315,6 +315,12 @@ export class SpaceJourney {
     this.active = false;
     this.last = performance.now();
 
+    this.gl = null;
+    this.glState = 'idle';   // idle -> loading -> ready | failed
+    this.shift = 0;          // accumulated hyperspace travel in px
+    this.loaded = -1;        // highest panel whose image has been requested
+    this.reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
     this.buildTimeline();
     this.render();
     this.cacheNodes();
@@ -360,8 +366,8 @@ export class SpaceJourney {
   render() {
     const planetPanels = this.planets.map((p, i) => `
       <div class="jr-panel" data-i="${i + 1}">
-        <img class="jr-img" src="${IMAGES[p.image]}" alt="${p.name} — ${p.tag}" draggable="false" decoding="async" />
-        ${p.imageFar ? `<img class="jr-img jr-img-far" src="${IMAGES[p.imageFar]}" alt="" draggable="false" decoding="async" />` : ''}
+        <img class="jr-img" data-src="${IMAGES[p.image]}" data-alt="${p.name} — ${p.tag}" alt="" draggable="false" decoding="async" />
+        ${p.imageFar ? `<img class="jr-img jr-img-far" data-src="${IMAGES[p.imageFar]}" alt="" draggable="false" decoding="async" />` : ''}
       </div>`).join('');
 
     const labels = ['MOON', ...this.planets.map((p) => p.name), 'SINGULARITY'];
@@ -382,11 +388,12 @@ export class SpaceJourney {
             </div>
             ${planetPanels}
             <div class="jr-panel jr-panel-bh" data-i="${this.n + 1}">
-              <img class="jr-img" src="${blackHoleImg}" alt="A black hole bending light" draggable="false" decoding="async" />
+              <img class="jr-img" data-src="${blackHoleImg}" data-alt="A black hole bending light" alt="" draggable="false" decoding="async" />
               <div class="jr-bh-glow"></div>
             </div>
           </div>
 
+          <canvas class="jr-gl"></canvas>
           <canvas class="jr-warp"></canvas>
           <div class="jr-chips"></div>
 
@@ -421,6 +428,8 @@ export class SpaceJourney {
     this.stage = this.q('#jr-stage');
     this.track = this.q('#jr-track');
     this.panels = [...this.container.querySelectorAll('.jr-panel')];
+    this.panelImgs = this.panels.map((p) => [...p.querySelectorAll('img[data-src]')]);
+    this.glCanvas = this.q('.jr-gl');
     this.farImg = this.q('.jr-img-far');
     this.spaceBg = this.q('.jr-space-bg');
     this.earth = this.q('.jr-earth');
@@ -470,7 +479,7 @@ export class SpaceJourney {
       const w = size * zoom;
       const h = (w * IMG_H) / IMG_W;
       const d = document.createElement('div');
-      d.style.backgroundImage = `url(${IMAGES[p.image]})`;
+      d.dataset.bg = IMAGES[p.image];
       d.style.backgroundSize = `${w}px ${h}px`;
       d.style.backgroundPosition = `${size / 2 - p.focus[0] * w}px ${size / 2 - p.focus[1] * h}px`;
       d.style.backgroundRepeat = 'no-repeat';
@@ -557,11 +566,13 @@ export class SpaceJourney {
     this.bhGlow.style.top = `${this.bh.y}px`;
 
     this.warp.resize();
+    if (this.gl) this.gl.setSize(vw, vh);
     this.measureSuckables();
   }
 
   /* ------------------------------ navigation ---------------------------- */
   jumpTo(k) {
+    this.loadUpTo(Math.min(this.n + 1, k + 1));
     const tl = this.tl;
     let u;
     if (k === 0) u = tl.moonHold[0] + UNITS.moonHold * 0.5;
@@ -575,6 +586,59 @@ export class SpaceJourney {
     else window.scrollTo({ top: y, behavior: 'smooth' });
   }
 
+  // camera position (panel index as a float) for a point on the timeline
+  panelAt(u) {
+    let f = 0;
+    for (let i = 0; i < this.tl.moves.length; i++) {
+      const [a, b] = this.tl.moves[i];
+      f += easeMove(clamp01((u - a) / (b - a)));
+    }
+    return f;
+  }
+
+  /* ------------------------------- loading ------------------------------ */
+  loadPanel(i) {
+    if (i < 0 || i >= this.panelImgs.length) return;
+    this.panelImgs[i].forEach((img) => {
+      if (img.getAttribute('src')) return;
+      if (img.dataset.alt) img.alt = img.dataset.alt;
+      img.src = img.dataset.src;
+    });
+    if (i === this.panelImgs.length - 1 && this.gl) this.gl.loadBlackHole(blackHoleImg);
+  }
+
+  // Panels are fetched in reading order, two ahead of the camera. If the user
+  // jumps (scrollbar drag, chapter dots) the panel they land on goes first.
+  loadUpTo(k, here = Math.round(this.f)) {
+    const upTo = Math.min(this.panelImgs.length - 1, k);
+    this.loadPanel(here);
+    this.loadPanel(here + 1);
+    for (let i = 0; i <= upTo; i++) this.loadPanel(i);
+    this.loaded = Math.max(this.loaded, upTo);
+    if (this.gl && here >= this.panelImgs.length - 3) this.gl.loadBlackHole(blackHoleImg);
+  }
+
+  async startGL() {
+    if (this.glState !== 'idle') return;
+    this.glState = 'loading';
+    try {
+      const { JourneyGL } = await import('../engine/JourneyGL.js');
+      const lite = Math.min(window.innerWidth, window.innerHeight) < 700;
+      const gl = new JourneyGL(this.glCanvas, { lite, imgW: IMG_W, imgH: IMG_H, hole: BH_CORE });
+      gl.setSize(this.vw, this.vh);
+      this.gl = gl;
+      this.glState = 'ready';
+      // building the moon surface is the only heavy step: do it when idle
+      await new Promise((res) => (window.requestIdleCallback ? window.requestIdleCallback(res, { timeout: 800 }) : setTimeout(res, 60)));
+      gl.buildMoon();
+      if (this.loaded >= this.panelImgs.length - 2) gl.loadBlackHole(blackHoleImg);
+    } catch (err) {
+      console.warn('[journey] WebGL unavailable, using the 2D fallback.', err);
+      this.glState = 'failed';
+      this.gl = null;
+    }
+  }
+
   /* -------------------------------- frame ------------------------------- */
   tick(now) {
     const dt = Math.min(0.05, Math.max(0.001, (now - this.last) / 1000));
@@ -583,6 +647,17 @@ export class SpaceJourney {
     const rect = this.container.getBoundingClientRect();
     const range = Math.max(1, rect.height - this.vh);
     const j = -rect.top / range;
+
+    // Load lazily, like a streaming product page: warm up GL and the first
+    // images a few screens before the journey, then stay ~2 panels ahead.
+    const dist = rect.top / this.vh;
+    if (dist < 3.2) this.startGL();
+    if (dist < 2.4) {
+      // while the stage is up, derive the camera position from scroll directly
+      // so a long jump can request the destination before the first frame
+      const fNow = j >= 0 ? this.panelAt(clamp01(j) * this.tl.total) : 0;
+      this.loadUpTo(Math.max(1, Math.ceil(fNow) + 2), Math.round(fNow));
+    }
 
     if (j < 0) {
       if (this.active) this.setActive(false);
@@ -597,8 +672,10 @@ export class SpaceJourney {
   setActive(on) {
     this.active = on;
     this.stage.classList.toggle('on', on);
+    // render only what matters: the sky layers are fully covered during the journey
+    document.body.classList.toggle('jr-active', on);
     if (!on) {
-      if (this.heroSun) this.heroSun.style.opacity = '';
+      if (this.heroSun) { this.heroSun.style.opacity = ''; this.heroSun.style.visibility = ''; }
       document.body.classList.remove('br-theme', 'jr-deep');
       if (this.navBar) this.navBar.classList.remove('br');
       this.applySuck(0, 1);
@@ -627,7 +704,9 @@ export class SpaceJourney {
     const slide = easeOut(e / 0.55);
     const lit = smooth((e - 0.5) / 0.5);
     if (this.heroSun) {
-      this.heroSun.style.opacity = `${1 - smooth((e - 0.55) / 0.35)}`;
+      const sunA = 1 - smooth((e - 0.55) / 0.35);
+      this.heroSun.style.opacity = `${sunA}`;
+      this.heroSun.style.visibility = sunA < 0.01 ? 'hidden' : '';
     }
     const pullE = smooth(q);
     const R = Math.max(vw * 0.9, vh * 1.0);
@@ -638,6 +717,33 @@ export class SpaceJourney {
     this.moonWrap.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${scale})`;
     this.moonCanvas.style.filter = lit < 1 ? `brightness(${0.015 + 0.985 * lit})` : '';
     this.moonGlow.style.opacity = `${lit * (1 - pullE)}`;
+
+    // --- real-time 3D moon (WebGL) ---------------------------------------
+    // The camera dollies in log-space from "a small disc over the sun" to
+    // "skimming above the lunar horizon"; the sun swings from behind the moon
+    // to the upper right, so the phase and terminator are lit for real.
+    const gl = this.gl && !this.gl.lost ? this.gl : null;
+    this.container.classList.toggle('gl-fx', !!gl);
+    this.container.classList.toggle('gl-moon', !!(gl && gl.moonReady));
+    this.container.classList.toggle('gl-bh', !!(gl && gl.bhReady));
+    let moonState = null;
+    if (gl) {
+      const th = Math.tan((30 * Math.PI) / 360);
+      const dFor = (rpx) => 1 / Math.sin(Math.atan((rpx / (vh / 2)) * th));
+      const rpxFor = (d) => ((vh / 2) * Math.tan(Math.asin(1 / d))) / th;
+      const d0 = dFor(this.moonD / 2);
+      const d1 = dFor(R);
+      const dist = Math.exp(Math.log(d0) + (Math.log(d1) - Math.log(d0)) * pullE);
+      const cy = vh / 2 + pullE * (limbTop + rpxFor(dist) - vh / 2);
+      moonState = {
+        visible: f < 1.15,
+        dx: dx - f * vw,
+        dy: cy - vh / 2,
+        d: dist,
+        phi: ((172 + (52 - 172) * smooth(e)) * Math.PI) / 180,
+        rot: 0.5 + u * 0.3
+      };
+    }
 
     this.spaceBg.style.opacity = `${smooth(q * 1.4)}`;
     const earthA = smooth((q - 0.35) / 0.5);
@@ -650,7 +756,8 @@ export class SpaceJourney {
     this.velS += (vel - this.velS) * Math.min(1, dt * 14);
     this.f = f;
 
-    const blur = Math.min(2.2, (Math.abs(this.velS) / vw) * 1.6);
+    this.shift += this.velS * dt;
+    const blur = this.reduce ? 0 : Math.min(2.2, (Math.abs(this.velS) / vw) * 1.6);
     this.panels.forEach((p, i) => {
       const near = Math.abs(i - f) < 1.25;
       p.style.filter = near && blur > 0.15 ? `blur(${blur.toFixed(2)}px)` : '';
@@ -679,7 +786,16 @@ export class SpaceJourney {
     this.contact.style.transform = `translate3d(0, ${(1 - contactA) * 26}px, 0)`;
     this.contact.style.pointerEvents = contactA > 0.6 ? 'auto' : 'none';
 
-    this.warp.frame(dt, this.velS, s, this.bh.x, this.bh.y);
+    if (gl) {
+      const warp = this.reduce ? 0 : Math.min(1, Math.abs(this.velS) / 900);
+      gl.render({
+        moon: moonState,
+        stars: { on: warp > 0.02 || s > 0, shift: this.shift, vel: this.velS, warp, s, hole: this.bh },
+        bh: { visible: Math.abs(this.n + 1 - f) < 1.02, x: (this.n + 1 - f) * vw, s }
+      });
+    } else {
+      this.warp.frame(dt, this.reduce ? 0 : this.velS, s, this.bh.x, this.bh.y);
+    }
 
     // --- HUD ---------------------------------------------------------------
     const k = Math.round(f);
@@ -701,7 +817,8 @@ export class SpaceJourney {
     this.chapterBtns.forEach((b, i) => b.classList.toggle('active', i === k));
 
     this.hud.dest.style.pointerEvents = destA > 0.7 ? 'auto' : 'none';
-    this.applySuck(s, 1, { hud: hudA, dest: destA, nav: 1 });
+    this.hud.dest.style.setProperty('--a', destA.toFixed(3));
+    this.applySuck(s, 1, { hud: hudA, dest: Math.min(1, destA * 2.5), nav: 1 });
     this.applyChips(s);
   }
 
@@ -710,19 +827,19 @@ export class SpaceJourney {
     const d = this.hud.dest;
     if (k === 0) {
       d.innerHTML = `
-        <div class="jr-dest-idx">// ORIGIN</div>
-        <h3>${this.cfg.moon.name}</h3>
-        <div class="jr-dest-tag">${this.cfg.moon.tag}</div>
-        <p>${this.cfg.moon.desc}</p>`;
+        <div class="jr-dest-idx" style="--d:0">// ORIGIN</div>
+        <h3 style="--d:.08">${this.cfg.moon.name}</h3>
+        <div class="jr-dest-tag" style="--d:.16">${this.cfg.moon.tag}</div>
+        <p style="--d:.24">${this.cfg.moon.desc}</p>`;
     } else if (k <= this.n) {
       const p = this.planets[k - 1];
       d.innerHTML = `
-        <div class="jr-dest-idx">// DESTINATION ${String(k).padStart(2, '0')} / ${String(this.n).padStart(2, '0')}</div>
-        <h3>${p.name}</h3>
-        <div class="jr-dest-tag">${p.tag}</div>
-        <p>${p.desc}</p>
-        <ul class="jr-stack">${p.stack.map((t) => `<li>${t}</li>`).join('')}</ul>
-        <a class="jr-dest-link" href="${p.repo}" target="_blank" rel="noopener noreferrer">OPEN REPOSITORY ↗</a>`;
+        <div class="jr-dest-idx" style="--d:0">// DESTINATION ${String(k).padStart(2, '0')} / ${String(this.n).padStart(2, '0')}</div>
+        <h3 style="--d:.07">${p.name}</h3>
+        <div class="jr-dest-tag" style="--d:.14">${p.tag}</div>
+        <p style="--d:.21">${p.desc}</p>
+        <ul class="jr-stack" style="--d:.28">${p.stack.map((t) => `<li>${t}</li>`).join('')}</ul>
+        <a class="jr-dest-link" style="--d:.35" href="${p.repo}" target="_blank" rel="noopener noreferrer">OPEN REPOSITORY ↗</a>`;
     } else {
       d.innerHTML = '';
     }
@@ -754,6 +871,10 @@ export class SpaceJourney {
     const visible = s > 0 && s < 1;
     this.chipsEl.style.display = visible ? 'block' : 'none';
     if (!visible) return;
+    if (!this.chipsFaced) {
+      this.chipsEl.querySelectorAll('[data-bg]').forEach((el) => { el.style.backgroundImage = `url(${el.dataset.bg})`; });
+      this.chipsFaced = true;
+    }
     const R0 = Math.hypot(this.vw, this.vh) * 0.78;
     this.chips.forEach((c) => {
       const t = clamp01((s - c.delay) / (0.97 - c.delay));
