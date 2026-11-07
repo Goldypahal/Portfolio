@@ -93,8 +93,17 @@ export class SkySpaceEngine {
   }
 
   updateScroll() {
-    const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
-    this.scrollProgress = totalScroll > 0 ? window.scrollY / totalScroll : 0;
+    // The sky-to-space gradient runs from the top of the page to the start of
+    // the space journey (#journey), which then takes over with its own stage.
+    const journey = document.getElementById('journey');
+    let limit;
+    if (journey) {
+      limit = journey.getBoundingClientRect().top + window.scrollY + window.innerHeight * 0.2;
+    } else {
+      limit = document.documentElement.scrollHeight - window.innerHeight;
+    }
+    this.scrollProgress = limit > 0 ? Math.min(1, window.scrollY / limit) : 0;
+    this._progressKey = `${window.scrollY}|${limit}`;
     this.updateAtmosphere(this.scrollProgress);
   }
 
@@ -202,8 +211,15 @@ export class SkySpaceEngine {
   }
 
   animate() {
-    // Render Starfield in Space
-    if (this.starCtx && this.starCanvas && parseFloat(this.starCanvas.style.opacity) > 0) {
+    // Layout can still change after load (fonts, images): keep progress in sync
+    const journey = document.getElementById('journey');
+    if (journey) {
+      const key = `${window.scrollY}|${journey.getBoundingClientRect().top + window.scrollY + window.innerHeight * 0.2}`;
+      if (key !== this._progressKey) this.updateScroll();
+    }
+
+    // Render Starfield in Space (skipped once the journey stage fully covers it)
+    if (this.starCtx && this.starCanvas && !document.body.classList.contains('jr-deep') && parseFloat(this.starCanvas.style.opacity) > 0) {
       this.starCtx.clearRect(0, 0, this.starCanvas.width, this.starCanvas.height);
       for (let star of this.stars) {
         star.alpha += star.twinkleSpeed * star.twinkleDir;

@@ -14,11 +14,9 @@ export class SpaceFooter {
 
   render() {
     this.container.innerHTML = `
-      <section id="space" class="space-section">
+      <section id="space" class="space-section" aria-label="Contact">
         <div class="space-central-container">
           
-          <!-- Center Ambient Sun Halo Zone -->
-          <div style="position: absolute; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 215, 0, 0.28) 0%, rgba(255, 140, 0, 0.09) 50%, transparent 70%); pointer-events: none;"></div>
 
           <!-- Top-Left Radial Orbit Card -->
           <div class="orbit-card top-left">
