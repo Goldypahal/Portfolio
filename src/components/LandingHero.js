@@ -31,7 +31,7 @@ export class LandingHero {
             <a href="#about">ABOUT</a>
             <a href="#skills">SKILLS</a>
             <a href="#exploring">EXPLORING</a>
-            <a href="#space">SPACE</a>
+            <a href="#journey">PROJECTS</a>
           </nav>
 
           <a href="mailto:${portfolioConfig.email}" class="ios-pill-btn nav-contact-btn">

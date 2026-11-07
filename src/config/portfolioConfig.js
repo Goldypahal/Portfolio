@@ -86,6 +86,73 @@ export const portfolioConfig = {
     }
   ],
 
+  // Scroll journey: moon -> projects (one planet each) -> black hole + contact.
+  // `image` / `imageFar` are keys resolved in components/SpaceJourney.js
+  journey: {
+    moon: {
+      name: "LUNAR ORBIT",
+      tag: "DEPARTURE POINT",
+      desc: "The sun has set on the home sky. Keep scrolling to leave orbit and fly through the systems I've built."
+    },
+    blackHole: {
+      name: "SINGULARITY",
+      tag: "END OF TRANSMISSION"
+    },
+    planets: [
+      {
+        id: "cortex",
+        name: "CORTEX HUB",
+        tag: "ENTERPRISE AI COMPONENT STORE",
+        desc: "Production-ready, deterministic AI engines with exact document byte-offset citations, hybrid vector retrieval and sovereign VPC / air-gapped deployment.",
+        stack: ["AI Engines", "Hybrid Retrieval", "PostgreSQL", "Razorpay"],
+        repo: "https://github.com/Goldypahal/Cortex-Hub",
+        image: "cortex",
+        focus: [0.49, 0.52]
+      },
+      {
+        id: "ffire",
+        name: "FFIRE",
+        tag: "FINANCIAL FRAUD INVESTIGATION REASONING ENGINE",
+        desc: "A multi-agent investigation engine where every claim is checked and every case is replayable.",
+        stack: ["LangGraph", "FastAPI", "React 19", "TypeScript"],
+        repo: "https://github.com/Goldypahal/FFRE",
+        image: "ffire",
+        imageFar: "ffireFar",
+        focus: [0.5, 0.5]
+      },
+      {
+        id: "reel",
+        name: "RESEARCH REEL",
+        tag: "RESEARCH SHARING PLATFORM",
+        desc: "A cloud-native microservices platform for sharing research as short-form video reels and interactive documents.",
+        stack: ["Next.js", "Express", "Python RAG", "Postgres", "Redis"],
+        repo: "https://github.com/Goldypahal/ResearchReel",
+        image: "reel",
+        focus: [0.65, 0.46]
+      },
+      {
+        id: "heimdal",
+        name: "HEIMDAL / SHIELD",
+        tag: "PERSONAL SAFETY PLATFORM",
+        desc: "Plan safer walking routes, share a walk live with guardians, and raise an SOS by button, voice keyword or a silent duress PIN.",
+        stack: ["Expo / React Native", "FastAPI", "TypeScript"],
+        repo: "https://github.com/Goldypahal/Shield",
+        image: "heimdal",
+        focus: [0.28, 0.48]
+      },
+      {
+        id: "multirag",
+        name: "MULTI RAG SYSTEM",
+        tag: "SEARCH. REASON. SUMMARIZE. TOGETHER.",
+        desc: "A multi-paper research RAG system that searches, reasons over and summarizes across many papers at once.",
+        stack: ["FastAPI", "LangChain", "ChromaDB"],
+        repo: "https://github.com/Goldypahal/Multi-Paper-Research-RAG-System-",
+        image: "multirag",
+        focus: [0.48, 0.46]
+      }
+    ]
+  },
+
   socials: [
     { label: "GITHUB", url: "https://github.com/Goldypahal" },
     { label: "LINKEDIN", url: "https://www.linkedin.com/in/goldy-pahal-8a6b84332/" },

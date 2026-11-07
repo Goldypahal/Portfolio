@@ -3,6 +3,7 @@
    ========================================================================== */
 
 import './styles/index.css';
+import './styles/journey.css';
 import Lenis from 'lenis';
 import { SkySpaceEngine } from './engine/SkySpaceEngine.js';
 import { CloudSystem } from './components/CloudSystem.js';
@@ -11,6 +12,7 @@ import { AboutSection } from './components/AboutSection.js';
 import { SkillsSection } from './components/SkillsSection.js';
 import { ExploringSection } from './components/ExploringSection.js';
 import { SpaceFooter } from './components/SpaceFooter.js';
+import { SpaceJourney } from './components/SpaceJourney.js';
 import { Preloader } from './components/Preloader.js';
 
 class PortfolioApp {
@@ -27,6 +29,8 @@ class PortfolioApp {
       smoothWheel: true,
       touchMultiplier: 1.5
     });
+
+    if (this.journey) this.journey.setLenis(this.lenis);
 
     this.lenis.on('scroll', () => {
       if (this.engine) {
@@ -50,6 +54,8 @@ class PortfolioApp {
     this.about = new AboutSection('app-about');
     this.skills = new SkillsSection('app-skills');
     this.exploring = new ExploringSection('app-exploring');
+    // The journey renders its own stage (including the #app-space contact mount)
+    this.journey = new SpaceJourney('app-journey');
     this.space = new SpaceFooter('app-space');
   }
 
